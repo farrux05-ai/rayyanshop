@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiyim Do'koni - Inventory System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        select, button {
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+            border: none;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .btn-export {
+            background: #3498db;
+            color: white;
+            border: none;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background-color: #f8f9ff;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-mavjud {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-ijarada {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-sotilgan {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .country-dubay {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .country-turkiya {
+            color: #3498db;
+            font-weight: 600;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            margin: 0 3px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            border-radius: 12px;
+            padding: 30px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+            border: none;
+        }
+
+        .price-input {
+            position: relative;
+        }
+
+        .price-input::after {
+            content: 'so\'m';
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .controls-row {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .table-container {
+                padding: 10px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+                font-size: 0.9em;
+            }
+        }
+
+        .sort-icon {
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #27ae60;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s, slideOut 0.3s 2.7s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(400px); }
+            to { transform: translateX(0); }
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); }
+            to { transform: translateX(400px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 Kiyim Inventory Tizimi</h1>
+            <p style="color: #666;">Professional inventory management system</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Jami Kiyimlar</h3>
+                <div class="number" id="totalItems">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Mavjud</h3>
+                <div class="number" style="color: #27ae60;" id="availableItems">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Ijarada</h3>
+                <div class="number" style="color: #f39c12;" id="rentedItems">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Sotilgan</h3>
+                <div class="number" style="color: #e74c3c;" id="soldItems">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Jami Qiymat</h3>
+                <div class="number" style="color: #9b59b6;" id="totalValue">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="controls-row">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Qidirish (nom, ID, brend...)">
+                </div>
+                <div class="filter-group">
+                    <select id="filterCountry">
+                        <option value="">Barcha Mamlakatlar</option>
+                        <option value="Dubay">Dubay</option>
+                        <option value="Turkiya">Turkiya</option>
+                    </select>
+                    <select id="filterStatus">
+                        <option value="">Barcha Holatlar</option>
+                        <option value="Mavjud">Mavjud</option>
+                        <option value="Ijarada">Ijarada</option>
+                        <option value="Sotilgan">Sotilgan</option>
+                    </select>
+                    <button class="btn-success" onclick="openAddModal()">➕ Yangi Qo'shish</button>
+                    <button class="btn-export" onclick="exportToCSV()">📥 Export CSV</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('id')">ID <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('name')">Nomi <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('brand')">Brend <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('country')">Mamlakat <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('category')">Kategoriya <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('size')">O'lcham <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('buyPrice')">Sotib Olish <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('salePrice')">Sotuv Narxi <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('rentPrice')">Ijara <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('status')">Holat <span class="sort-icon">⇅</span></th>
+                        <th onclick="sortTable('timesRented')">Ijara Soni <span class="sort-icon">⇅</span></th>
+                        <th>Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTable"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Yangi Kiyim Qo'shish</h2>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label>Nomi *</label>
+                    <input type="text" id="itemName" required placeholder="Masalan: Gucci Ko'ylak">
+                </div>
+                <div class="form-group">
+                    <label>Brend *</label>
+                    <input type="text" id="itemBrand" required placeholder="Gucci, Zara, LC Waikiki...">
+                </div>
+                <div class="form-group">
+                    <label>Mamlakat *</label>
+                    <select id="itemCountry" required>
+                        <option value="">Tanlang</option>
+                        <option value="Dubay">Dubay</option>
+                        <option value="Turkiya">Turkiya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Kategoriya *</label>
+                    <select id="itemCategory" required>
+                        <option value="">Tanlang</option>
+                        <option value="Ko'ylak">Ko'ylak</option>
+                        <option value="Kostyum">Kostyum</option>
+                        <option value="Shim">Shim</option>
+                        <option value="Futbolka">Futbolka</option>
+                        <option value="Palto">Palto</option>
+                        <option value="Aksessuar">Aksessuar</option>
+                        <option value="Bayram Kiyimi">Bayram Kiyimi</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>O'lcham *</label>
+                    <input type="text" id="itemSize" required placeholder="S, M, L, XL, 42, 44...">
+                </div>
+                <div class="form-group">
+                    <label>Sotib Olish Narxi (so'm) *</label>
+                    <input type="number" id="itemBuyPrice" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Sotuv Narxi (so'm) *</label>
+                    <input type="number" id="itemSalePrice" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Ijara Narxi (so'm) *</label>
+                    <input type="number" id="itemRentPrice" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Holati *</label>
+                    <select id="itemStatus" required>
+                        <option value="Mavjud">Mavjud</option>
+                        <option value="Ijarada">Ijarada</option>
+                        <option value="Sotilgan">Sotilgan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Izoh</label>
+                    <textarea id="itemNotes" placeholder="Qo'shimcha ma'lumotlar..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Bekor qilish</button>
+                    <button type="submit" class="btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        let inventory = [
+            {
+                id: 'KYM001',
+                name: 'Gucci Kechki Ko\'ylak',
+                brand: 'Gucci',
+                country: 'Dubay',
+                category: 'Ko\'ylak',
+                size: 'M',
+                buyPrice: 2000000,
+                salePrice: 8000000,
+                rentPrice: 900000,
+                status: 'Mavjud',
+                timesRented: 0,
+                notes: 'Yangi, Premium segment'
+            },
+            {
+                id: 'KYM002',
+                name: 'Versace Erkaklar Kostyumi',
+                brand: 'Versace',
+                country: 'Dubay',
+                category: 'Kostyum',
+                size: 'L',
+                buyPrice: 3500000,
+                salePrice: 12000000,
+                rentPrice: 1200000,
+                status: 'Ijarada',
+                timesRented: 2,
+                notes: 'To\'y uchun mashhur'
+            },
+            {
+                id: 'KYM003',
+                name: 'Zara Klassik Shim',
+                brand: 'Zara',
+                country: 'Turkiya',
+                category: 'Shim',
+                size: '42',
+                buyPrice: 200000,
+                salePrice: 600000,
+                rentPrice: 100000,
+                status: 'Mavjud',
+                timesRented: 5,
+                notes: 'Ommabop model'
+            },
+            {
+                id: 'KYM004',
+                name: 'LC Waikiki Sport Ko\'ylak',
+                brand: 'LC Waikiki',
+                country: 'Turkiya',
+                category: 'Ko\'ylak',
+                size: 'S',
+                buyPrice: 150000,
+                salePrice: 450000,
+                rentPrice: 80000,
+                status: 'Mavjud',
+                timesRented: 3,
+                notes: 'Casual style'
+            },
+            {
+                id: 'KYM005',
+                name: 'Armani To\'y Kostyumi',
+                brand: 'Armani',
+                country: 'Dubay',
+                category: 'Bayram Kiyimi',
+                size: 'XL',
+                buyPrice: 4000000,
+                salePrice: 15000000,
+                rentPrice: 1500000,
+                status: 'Sotilgan',
+                timesRented: 1,
+                notes: 'VIP mijozga sotilgan'
+            }
+        ];
+
+        let editingId = null;
+        let sortDirection = {};
+
+        function renderTable() {
+            const tbody = document.getElementById('inventoryTable');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterCountry = document.getElementById('filterCountry').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+
+            let filtered = inventory.filter(item => {
+                const matchSearch = !searchTerm || 
+                    item.name.toLowerCase().includes(searchTerm) ||
+                    item.id.toLowerCase().includes(searchTerm) ||
+                    item.brand.toLowerCase().includes(searchTerm);
+                
+                const matchCountry = !filterCountry || item.country === filterCountry;
+                const matchStatus = !filterStatus || item.status === filterStatus;
+
+                return matchSearch && matchCountry && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="empty-state">
+                            <h3>🔍 Hech narsa topilmadi</h3>
+                            <p>Qidiruv parametrlarini o'zgartiring yoki yangi kiyim qo'shing</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => `
+                <tr>
+                    <td><strong>${item.id}</strong></td>
+                    <td>${item.name}</td>
+                    <td>${item.brand}</td>
+                    <td class="country-${item.country.toLowerCase()}">${item.country}</td>
+                    <td>${item.category}</td>
+                    <td><strong>${item.size}</strong></td>
+                    <td>${formatPrice(item.buyPrice)}</td>
+                    <td><strong>${formatPrice(item.salePrice)}</strong></td>
+                    <td style="color: #27ae60;"><strong>${formatPrice(item.rentPrice)}</strong></td>
+                    <td><span class="status-badge status-${item.status.toLowerCase().replace(' ', '-')}">${item.status}</span></td>
+                    <td style="text-align: center;"><strong>${item.timesRented}x</strong></td>
+                    <td>
+                        <button class="action-btn btn-edit" onclick="editItem('${item.id}')">✏️</button>
+                        <button class="action-btn btn-delete" onclick="deleteItem('${item.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateStats();
+        }
+
+        function updateStats() {
+            const total = inventory.length;
+            const available = inventory.filter(i => i.status === 'Mavjud').length;
+            const rented = inventory.filter(i => i.status === 'Ijarada').length;
+            const sold = inventory.filter(i => i.status === 'Sotilgan').length;
+            const totalValue = inventory
+                .filter(i => i.status !== 'Sotilgan')
+                .reduce((sum, i) => sum + i.salePrice, 0);
+
+            document.getElementById('totalItems').textContent = total;
+            document.getElementById('availableItems').textContent = available;
+            document.getElementById('rentedItems').textContent = rented;
+            document.getElementById('soldItems').textContent = sold;
+            document.getElementById('totalValue').textContent = formatPrice(totalValue);
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('uz-UZ').format(price) + ' so\'m';
+        }
+
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Yangi Kiyim Qo\'shish';
+            document.getElementById('itemForm').reset();
+            document.getElementById('itemModal').style.display = 'block';
+        }
+
+        function editItem(id) {
+            editingId = id;
+            const item = inventory.find(i => i.id === id);
+            
+            document.getElementById('modalTitle').textContent = 'Kiyimni Tahrirlash';
+            document.getElementById('itemName').value = item.name;
+            document.getElementById('itemBrand').value = item.brand;
+            document.getElementById('itemCountry').value = item.country;
+            document.getElementById('itemCategory').value = item.category;
+            document.getElementById('itemSize').value = item.size;
+            document.getElementById('itemBuyPrice').value = item.buyPrice;
+            document.getElementById('itemSalePrice').value = item.salePrice;
+            document.getElementById('itemRentPrice').value = item.rentPrice;
+            document.getElementById('itemStatus').value = item.status;
+            document.getElementById('itemNotes').value = item.notes || '';
+            
+            document.getElementById('itemModal').style.display = 'block';
+        }
+
+        function deleteItem(id) {
+            if (confirm('Rostdan ham o\'chirmoqchimisiz?')) {
+                inventory = inventory.filter(i => i.id !== id);
+                renderTable();
+                showToast('Muvaffaqiyatli o\'chirildi!');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+            editingId = null;
+        }
+
+        function generateId() {
+            const maxId = inventory.reduce((max, item) => {
+                const num = parseInt(item.id.replace('KYM', ''));
+                return num > max ? num : max;
+            }, 0);
+            return 'KYM' + String(maxId + 1).padStart(3, '0');
+        }
+
+        document.getElementById('itemForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('itemName').value,
+                brand: document.getElementById('itemBrand').value,
+                country: document.getElementById('itemCountry').value,
+                category: document.getElementById('itemCategory').value,
+                size: document.getElementById('itemSize').value,
+                buyPrice: parseInt(document.getElementById('itemBuyPrice').value),
+                salePrice: parseInt(document.getElementById('itemSalePrice').value),
+                rentPrice: parseInt(document.getElementById('itemRentPrice').value),
+                status: document.getElementById('itemStatus').value,
+                notes: document.getElementById('itemNotes').value
+            };
+
+            if (editingId) {
+                const item = inventory.find(i => i.id === editingId);
+                Object.assign(item, formData);
+                showToast('Muvaffaqiyatli yangilandi!');
+            } else {
+                inventory.push({
+                    id: generateId(),
+                    ...formData,
+                    timesRented: 0
+                });
+                showToast('Muvaffaqiyatli qo\'shildi!');
+            }
+
+            closeModal();
+            renderTable();
+        });
+
+        function sortTable(field) {
+            sortDirection[field] = !sortDirection[field];
+            
+            inventory.sort((a, b) => {
+                let valA = a[field];
+                let valB = b[field];
+                
+                if (typeof valA === 'string') {
+                    valA = valA.toLowerCase();
+                    valB = valB.toLowerCase();
+                }
+                
+                if (valA < valB) return sortDirection[field] ? -1 : 1;
+                if (valA > valB) return sortDirection[field] ? 1 : -1;
+                return 0;
+            });
+            
+            renderTable();
+        }
+
+        function exportToCSV() {
+            const headers = ['ID', 'Nomi', 'Brend', 'Mamlakat', 'Kategoriya', 'O\'lcham', 'Sotib Olish', 'Sotuv', 'Ijara', 'Holat', 'Ijara Soni', 'Izoh'];
+            const rows = inventory.map(item => [
+                item.id,
+                item.name,
+                item.brand,
+                item.country,
+                item.category,
+                item.size,
+                item.buyPrice,
+                item.salePrice,
+                item.rentPrice,
+                item.status,
+                item.timesRented,
+                item.notes || ''
+            ]);
+
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'inventory_' + new Date().toISOString().split('T')[0] + '.csv';
+            link.click();
+            
+            showToast('CSV fayl yuklab olindi!');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+        document.getElementById('filterCountry').addEventListener('change', renderTable);
+        document.getElementById('filterStatus').addEventListener('change', renderTable);
+
+        window.onclick = (e) => {
+            if (e.target.id === 'itemModal') {
+                closeModal();
+            }
+        };
+
+        renderTable();
+    </script>
+</body>
+</html>
